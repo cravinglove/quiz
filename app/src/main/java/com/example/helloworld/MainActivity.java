@@ -22,9 +22,11 @@ public class MainActivity extends AppCompatActivity {
             new Question(R.string.question_americas, true),
             new Question(R.string.question_asia, true)
     };
+    private boolean[] mQuestionAnswered = new boolean[mQuestionBank.length];
     private int mCurrentIndex = 0;
     private static final String TAG = "QuizActivity";
     private static final String KEY_INDEX = "index";
+    private static final String KEY_QUESTION_ANSWERED = "questionAnswered";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -32,9 +34,15 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         if(savedInstanceState != null) {
             mCurrentIndex = savedInstanceState.getInt(KEY_INDEX, 0);
+            if(savedInstanceState.containsKey(KEY_QUESTION_ANSWERED)) {
+                mQuestionAnswered = savedInstanceState.getBooleanArray(KEY_QUESTION_ANSWERED);
+                Log.d(TAG, mQuestionAnswered.toString());
+            }
         }
 
         mQuestionTextView = (TextView) findViewById(R.id.question_text_view);
+        mTrueButton = (Button) findViewById(R.id.true_button);
+        mFalseButton = (Button) findViewById(R.id.false_button);
         updateQuestion();
         mQuestionTextView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -42,14 +50,12 @@ public class MainActivity extends AppCompatActivity {
                 nextQuestion();
             }
         });
-        mTrueButton = (Button) findViewById(R.id.true_button);
         mTrueButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 checkAnswer(true);
             }
         });
-        mFalseButton = (Button) findViewById(R.id.false_button);
         mFalseButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -85,6 +91,7 @@ public class MainActivity extends AppCompatActivity {
         super.onSaveInstanceState(savedInstanceState);
         Log.i(TAG, "onSaveInstanceState");
         savedInstanceState.putInt(KEY_INDEX, mCurrentIndex);
+        savedInstanceState.putBooleanArray(KEY_QUESTION_ANSWERED, mQuestionAnswered);
     }
     @Override
     public void onStop() {
@@ -97,6 +104,8 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "onDestroy() called");
     }
     private void updateQuestion() {
+        mTrueButton.setEnabled(!mQuestionAnswered[mCurrentIndex]);
+        mFalseButton.setEnabled(!mQuestionAnswered[mCurrentIndex]);
         int question = mQuestionBank[mCurrentIndex].getTextResId();
         mQuestionTextView.setText(question);
     }
@@ -113,5 +122,8 @@ public class MainActivity extends AppCompatActivity {
             messageResId = R.string.incorrect_toast;
         }
         Toast.makeText(this, messageResId, Toast.LENGTH_SHORT).show();
+        mQuestionAnswered[mCurrentIndex] = true;
+        mTrueButton.setEnabled(false);
+        mFalseButton.setEnabled(false);
     }
 }
